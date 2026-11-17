@@ -1,4 +1,4 @@
-const CACHE_NAME = 'manhunt-v3';
+const CACHE_NAME = 'manhunt-v4';
 const FILES = ['./', './index.html', './creer.html', './jeu.html', './style.css', './common.js', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', event => {
