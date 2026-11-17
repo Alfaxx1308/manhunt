@@ -1,5 +1,5 @@
-const C = 'manhunt-v1';
-const FILES = ['./', 'index.html', 'manifest.json', 'icon.svg'];
+const C = 'manhunt-v2';
+const FILES = ['./', 'index.html', 'creer.html', 'jeu.html', 'style.css', 'common.js', 'manifest.json', 'icon.svg'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(C).then(c => c.addAll(FILES)));
