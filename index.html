@@ -1,272 +1,52 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Man Hunt IRL</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0b0b0c">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<link rel="apple-touch-icon" href="icon.svg">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<style>
-:root{--bg:#0b0b0c;--panel:#16161a;--line:#2a2a31;--tx:#f5f5f6;--mut:#9a9aa5;--or:#ff6a00;--or2:#ff8a3d;--bad:#e5173f}
-*{box-sizing:border-box}
-html,body{height:100%;margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
-.screen{display:none;height:100%}.screen.on{display:flex;flex-direction:column}
-#home{padding:max(28px,env(safe-area-inset-top)) 22px max(22px,env(safe-area-inset-bottom));gap:12px;justify-content:flex-end;background:radial-gradient(120% 60% at 90% 0%,rgba(255,106,0,.32),transparent 60%),var(--bg)}
-h1{font:800 3.8rem/.95 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:-.04em;margin:0}
-.pill{display:inline-block;background:var(--or);color:#000;font-weight:800;border-radius:999px;padding:2px 16px;font-size:1.3rem;letter-spacing:0;vertical-align:middle}
-.tag{color:var(--mut);margin:0 0 16px;max-width:32ch}
-input,select,button{font:inherit;padding:15px 16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--tx);width:100%}
-input::placeholder{color:var(--mut)}
-button{background:var(--or);border-color:var(--or);color:#000;font-weight:700;cursor:pointer;transition:transform .1s}
-button:active{transform:scale(.97)}
-button.alt{background:var(--panel);border-color:var(--line);color:var(--tx)}
-.row{display:flex;gap:8px}.row>*{flex:1}
-:focus-visible{outline:2px solid var(--or2);outline-offset:2px}
-#game{position:relative}
-#map{flex:1;background:var(--bg)}
-#top{position:absolute;z-index:1000;top:max(8px,env(safe-area-inset-top));left:8px;right:8px;padding:12px 14px;background:rgba(11,11,12,.82);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:18px}
-#top b{color:var(--or)}
-#status{font-size:.95rem}
-#alert{display:none;background:var(--bad);color:#fff;padding:8px 10px;margin-top:8px;border-radius:10px;font-weight:700}
-#bar{display:flex;gap:8px;padding:12px 12px max(12px,env(safe-area-inset-bottom));background:var(--bg);border-top:1px solid var(--line)}
-#bar button[hidden]{display:none}
-#btnSos{background:var(--bad);border-color:var(--bad);color:#fff;flex:0 0 84px}
-dialog{border:1px solid var(--line);border-radius:22px;padding:20px;width:min(92vw,420px);background:var(--panel);color:var(--tx)}
-dialog::backdrop{background:rgba(0,0,0,.7)}
-dialog h2{margin:0 0 4px}
-dialog label{display:block;margin:12px 0 6px;color:var(--mut);font-size:.9rem}
-#toast{position:fixed;z-index:3000;left:50%;bottom:96px;transform:translateX(-50%);background:var(--or);color:#000;font-weight:700;padding:10px 18px;border-radius:999px;display:none}
-#cmap{flex:1;min-height:180px;background:var(--bg)}
-#cform{padding:16px 16px max(16px,env(safe-area-inset-bottom));background:var(--panel);border-top:1px solid var(--line);max-height:62%;overflow:auto}
-#cform h2{margin:0 0 4px}
-.hint{color:var(--mut);margin:0 0 12px;font-size:.9rem}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.grid label{display:block;color:var(--mut);font-size:.85rem;margin-bottom:4px}
-.leaflet-container{background:#0b0b0c}
-.leaflet-control-attribution{background:rgba(0,0,0,.6)!important;color:#9a9aa5!important}
-.leaflet-control-attribution a{color:#ff8a3d!important}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Man Hunt IRL</title>
+  <meta name="theme-color" content="#0b0b0c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <style>
+    :root{color-scheme:dark;--bg:#0b0b0c;--panel:#16161a;--line:#2a2a31;--text:#f5f5f6;--muted:#9a9aa5;--orange:#ff6a00;--red:#e5173f}
+    *{box-sizing:border-box}html,body{min-height:100%;margin:0}body{display:flex;align-items:flex-end;justify-content:center;padding:max(24px,env(safe-area-inset-top)) 20px max(22px,env(safe-area-inset-bottom));background:radial-gradient(120% 60% at 90% 0%,rgba(255,106,0,.32),transparent 65%),var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+    main{width:min(100%,480px);display:grid;gap:12px}h1{font-size:clamp(3.2rem,15vw,4.2rem);line-height:.95;letter-spacing:-.04em;margin:0;font-weight:800}.pill{display:inline-block;background:var(--orange);color:#000;border-radius:999px;padding:3px 14px;font-size:1.2rem;vertical-align:middle;letter-spacing:0}.tag{color:var(--muted);max-width:34ch;margin:0 0 12px}
+    input,select,button{width:100%;min-height:52px;padding:13px 15px;border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--text);font:inherit}input::placeholder{color:var(--muted)}button{background:var(--orange);border-color:var(--orange);color:#000;font-weight:750;cursor:pointer}button.alt{background:var(--panel);border-color:var(--line);color:var(--text)}.row{display:flex;gap:8px}.row>*{min-width:0;flex:1}#message{min-height:1.4em;margin:0;color:#ff8a3d}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #ff8a3d;outline-offset:2px}
+  </style>
 </head>
 <body>
-
-<section id="home" class="screen on">
-  <h1>Man<br>Hunt <span class="pill">IRL</span></h1>
-  <p class="tag">Poursuite grandeur nature. Crée une partie, invite tes amis, traque ou disparais.</p>
-  <input id="name" placeholder="Ton pseudo" autocomplete="nickname">
-  <select id="role"><option value="fugitif">Je suis fugitif</option><option value="chasseur">Je suis chasseur</option></select>
-  <button id="btnCreate">Créer une partie</button>
-  <div class="row"><input id="code" placeholder="Code" maxlength="4" autocapitalize="characters"><button id="btnJoin" class="alt">Rejoindre</button></div>
-</section>
-
-<section id="create" class="screen">
-  <div id="cmap"></div>
-  <div id="cform">
-    <h2>Nouvelle partie</h2>
-    <p class="hint">Touche la carte pour placer le centre de la zone de jeu. Tu pourras tout modifier ensuite.</p>
-    <button id="btnCHere" class="alt" style="margin-bottom:10px">Placer la zone sur ma position</button>
-    <div class="grid">
-      <div><label for="c_zoneR">Rayon de la zone (m)</label><input id="c_zoneR" type="number" min="100"></div>
-      <div><label for="c_headStart">Avance des fugitifs (min)</label><input id="c_headStart" type="number" min="0"></div>
-      <div><label for="c_revealSec">Révélation toutes les (s)</label><input id="c_revealSec" type="number" min="10"></div>
-      <div><label for="c_fuzzM">Rayon des cercles flous (m)</label><input id="c_fuzzM" type="number" min="20"></div>
-      <div><label for="c_durationMin">Durée de la partie (min)</label><input id="c_durationMin" type="number" min="5"></div>
-    </div>
-    <div class="row" style="margin-top:14px"><button id="btnBack" class="alt">Retour</button><button id="btnOk">Créer la partie</button></div>
-  </div>
-</section>
-
-<section id="game" class="screen">
-  <div id="top"><div><b id="info"></b></div><div id="status"></div><div id="alert"></div></div>
-  <div id="map"></div>
-  <div id="bar">
-    <button id="btnSet" hidden>Réglages</button>
-    <button id="btnGo" hidden>Lancer</button>
-    <button id="btnCaught" hidden class="alt">Capturé</button>
-    <button id="btnSos">SOS</button>
-  </div>
-</section>
-
-<dialog id="set">
-  <h2 style="margin:0">Réglages de la partie</h2>
-  <label for="zoneR">Rayon de la zone (mètres)</label><input id="zoneR" type="number" min="100">
-  <label for="headStart">Avance des fugitifs (minutes)</label><input id="headStart" type="number" min="0">
-  <label for="revealSec">Intervalle de révélation (secondes)</label><input id="revealSec" type="number" min="10">
-  <label for="fuzzM">Rayon des cercles flous (mètres)</label><input id="fuzzM" type="number" min="20">
-  <label for="durationMin">Durée de la partie (minutes)</label><input id="durationMin" type="number" min="5">
-  <div class="row" style="margin-top:12px"><button id="btnPick" class="alt">Choisir le centre sur la carte</button><button id="btnHere" class="alt">Centre sur ma position</button></div>
-  <div class="row" style="margin-top:8px"><button id="btnSave">Enregistrer</button><button id="btnClose" class="alt">Fermer</button></div>
-</dialog>
-<div id="toast"></div>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script>
-// 1. Colle ici la configuration de ton projet Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyBs1dxrsJKjYZQwk9s-6A5JUMAgUz2Umc8",
-  authDomain: "manhunt-42850.firebaseapp.com",
-  projectId: "manhunt-42850",
-  storageBucket: "manhunt-42850.firebasestorage.app",
-  messagingSenderId: "721791132248",
-  appId: "1:721791132248:web:a7dd7fbaf9deadddf9e02d",
-  measurementId: "G-VHSC50F5ZM"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-};
-firebase.initializeApp(CFG);
-const db = firebase.database();
-let off = 0; db.ref('.info/serverTimeOffset').on('value', s => off = s.val() || 0);
-const now = () => Date.now() + off;
-const $ = s => document.querySelector(s);
-
-// Réglages par défaut, tous modifiables par l'hôte pendant la partie
-const DEF = {lat:48.8566, lng:2.3522, zoneR:1000, headStart:5, revealSec:150, fuzzM:150, durationMin:60};
-const S = {id: localStorage.mhId || (localStorage.mhId = Math.random().toString(36).slice(2,10)),
-  name:'', code:null, role:null, host:false, rules:{...DEF}, status:'lobby', startedAt:0,
-  players:{}, pos:null, pick:false, out:false, drawn:-1};
-let map, zone, me, revIdx = -1; const circles = L.layerGroup(), hm = {};
-
-$('#name').value = localStorage.mhName || '';
-const show = id => { document.querySelectorAll('.screen').forEach(e => e.classList.toggle('on', e.id === id)); };
-const toast = t => { const e = $('#toast'); e.textContent = t; e.style.display = 'block'; setTimeout(() => e.style.display = 'none', 2500); };
-const fmt = ms => { const s = Math.max(0, Math.ceil(ms/1000)); return Math.floor(s/60) + ' min ' + String(s%60).padStart(2,'0') + ' s'; };
-const dist = (a,b) => { const R=6371000,t=Math.PI/180,x=(b.lat-a.lat)*t,y=(b.lng-a.lng)*t,h=Math.sin(x/2)**2+Math.cos(a.lat*t)*Math.cos(b.lat*t)*Math.sin(y/2)**2; return 2*R*Math.asin(Math.sqrt(h)); };
-function rnd(str){ let h = 1779033703 ^ str.length; for (let i=0;i<str.length;i++){ h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h<<13 | h>>>19; }
-  return () => { h = Math.imul(h ^ h>>>16, 2246822507); h = Math.imul(h ^ h>>>13, 3266489909); return ((h ^= h>>>16) >>> 0) / 4294967296; }; }
-const getPos = () => new Promise((ok, ko) => navigator.geolocation.getCurrentPosition(p => ok({lat:p.coords.latitude, lng:p.coords.longitude}), ko, {enableHighAccuracy:true, timeout:8000}));
-function notify(t, b){ if (window.Notification && Notification.permission === 'granted' && navigator.serviceWorker)
-  navigator.serviceWorker.ready.then(r => r.showNotification(t, {body:b, icon:'icon.svg', vibrate:[200,100,200]})); if (navigator.vibrate) navigator.vibrate([200,100,200]); }
-
-function initMap(){
-  if (map) return;
-  map = L.map('map', {zoomControl:false}).setView([S.rules.lat, S.rules.lng], 15);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {maxZoom:19, subdomains:'abcd', attribution:'© OpenStreetMap © CARTO'}).addTo(map);
-  zone = L.circle([S.rules.lat, S.rules.lng], {radius:S.rules.zoneR, color:'#ff6a00', fill:false, weight:3, dashArray:'10 8'}).addTo(map);
-  circles.addTo(map);
-  map.on('click', e => { if (S.pick) { S.pick = false; setRules({lat:e.latlng.lat, lng:e.latlng.lng}); toast('Centre de la zone déplacé'); } });
-}
-const setRules = p => db.ref('games/' + S.code + '/rules').update(p);
-
-async function enter(code, name, role, host){
-  Object.assign(S, {code, name, role, host, joined: now()});
-  localStorage.mhName = name;
-  if (window.Notification) Notification.requestPermission();
-  await db.ref(`games/${code}/players/${S.id}`).update({name, role, caught:false});
-  show('game'); initMap(); listen(); watch(); wake(); ui();
-}
-const KEYS = ['zoneR','headStart','revealSec','fuzzM','durationMin'];
-let cm, cz, cc = {lat:DEF.lat, lng:DEF.lng};
-function setC(p, pan){ cc = {lat:p.lat, lng:p.lng}; cz.setLatLng([cc.lat, cc.lng]); if (pan) cm.panTo([cc.lat, cc.lng]); }
-$('#btnCreate').onclick = async () => {
-  if (!$('#name').value.trim()) return toast('Entre un pseudo');
-  show('create');
-  for (const k of KEYS) $('#c_' + k).value = DEF[k];
-  if (!cm) {
-    cm = L.map('cmap', {zoomControl:false}).setView([cc.lat, cc.lng], 14);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {maxZoom:19, subdomains:'abcd', attribution:'© OpenStreetMap © CARTO'}).addTo(cm);
-    cz = L.circle([cc.lat, cc.lng], {radius:DEF.zoneR, color:'#ff6a00', fill:false, weight:3, dashArray:'10 8'}).addTo(cm);
-    cm.on('click', e => setC(e.latlng));
-    $('#c_zoneR').oninput = e => cz.setRadius(+e.target.value || 0);
-  }
-  setTimeout(() => cm.invalidateSize(), 60);
-  const p = await getPos().catch(() => null); if (p) { setC(p, true); cm.setView([p.lat, p.lng], 14); }
-};
-$('#btnCHere').onclick = async () => { const p = await getPos().catch(() => null); if (p) setC(p, true); else toast('Position introuvable'); };
-$('#btnBack').onclick = () => show('home');
-$('#btnOk').onclick = async () => {
-  const name = $('#name').value.trim();
-  const r = {...DEF, lat:cc.lat, lng:cc.lng}; for (const k of KEYS) r[k] = +$('#c_' + k).value || DEF[k];
-  S.rules = r;
-  const code = Array.from({length:4}, () => 'ABCDEFGHJKMNPQRSTUVWXYZ'[Math.random()*23|0]).join('');
-  await db.ref('games/' + code).set({host:S.id, status:'lobby', rules:r});
-  enter(code, name, $('#role').value, true);
-};
-$('#btnJoin').onclick = async () => {
-  const name = $('#name').value.trim(), code = $('#code').value.trim().toUpperCase();
-  if (!name || !code) return toast('Pseudo et code requis');
-  const s = await db.ref('games/' + code).get(); if (!s.exists()) return toast('Aucune partie avec ce code');
-  enter(code, name, $('#role').value, s.val().host === S.id);
-};
-
-function listen(){
-  const g = db.ref('games/' + S.code);
-  g.child('rules').on('value', s => { S.rules = {...DEF, ...s.val()}; const r = S.rules;
-    zone.setLatLng([r.lat, r.lng]).setRadius(r.zoneR); if (!S.centered) { map.setView([r.lat, r.lng], 15); S.centered = 1; } });
-  g.child('status').on('value', s => { S.status = s.val() || 'lobby'; ui(); });
-  g.child('startedAt').on('value', s => { S.startedAt = s.val() || 0; revIdx = -1; S.drawn = -1; circles.clearLayers(); });
-  g.child('sos').on('value', s => { const v = s.val(); if (v && v.t > S.joined) alertBar('SOS de ' + v.name, true); });
-  // Les fugitifs n'écoutent jamais les positions des autres joueurs
-  if (S.role === 'chasseur') g.child('players').on('value', s => { S.players = s.val() || {}; drawHunters(); if (revIdx >= 0 && S.drawn !== revIdx) reveal(revIdx); });
-  setInterval(tick, 1000);
-}
-function watch(){
-  navigator.geolocation.watchPosition(p => {
-    const q = {lat:p.coords.latitude, lng:p.coords.longitude}; S.pos = q;
-    if (S.role === 'chasseur') me = me ? me.setLatLng(q) : L.circleMarker(q, {radius:9, color:'#ff6a00', fillColor:'#fff', fillOpacity:1, weight:4}).addTo(map);
-    const t = now(); if (t - (S.last || 0) > 4000) { S.last = t; db.ref(`games/${S.code}/players/${S.id}/pos`).set({...q, t}); }
-    const out = dist(q, S.rules) > S.rules.zoneR;
-    if (out !== S.out) { S.out = out; if (out) { alertBar('Tu es hors de la zone de jeu', true); notify('Hors zone', 'Reviens dans la zone de jeu'); } else $('#alert').style.display = 'none'; }
-  }, e => toast('GPS : ' + e.message), {enableHighAccuracy:true, maximumAge:2000});
-}
-async function wake(){ try { await navigator.wakeLock.request('screen'); } catch (e) {} }
-document.addEventListener('visibilitychange', () => { if (!document.hidden && S.code) wake(); });
-function alertBar(t, vib){ const a = $('#alert'); a.textContent = t; a.style.display = 'block'; a.onclick = () => a.style.display = 'none'; if (vib) notify('Man Hunt', t); }
-
-function drawHunters(){
-  for (const [id, p] of Object.entries(S.players)) {
-    if (id === S.id || p.role !== 'chasseur' || !p.pos) continue;
-    (hm[id] = hm[id] || L.circleMarker([0,0], {radius:6, color:'#0b0b0c', fillColor:'#fff', fillOpacity:1, weight:2}).bindTooltip(p.name).addTo(map)).setLatLng([p.pos.lat, p.pos.lng]);
-  }
-}
-// Les chasseurs voient chaque fugitif dans un cercle dont le centre est décalé (même décalage pour tous les chasseurs)
-function reveal(i){
-  circles.clearLayers(); let n = 0; const f = S.rules.fuzzM;
-  for (const [id, p] of Object.entries(S.players)) {
-    if (p.role !== 'fugitif' || p.caught || !p.pos) continue; n++;
-    const R = rnd(id + i), a = R() * 6.283, d = R() * f * .7;
-    const la = p.pos.lat + d * Math.cos(a) / 111320, ln = p.pos.lng + d * Math.sin(a) / (111320 * Math.cos(p.pos.lat * Math.PI / 180));
-    L.circle([la, ln], {radius:f, color:'#ff6a00', weight:2, fillColor:'#ff6a00', fillOpacity:.25}).addTo(circles);
-  }
-  if (n) { S.drawn = i; notify('Radar', 'Nouvelles positions des fugitifs'); }
-}
-function tick(){
-  const r = S.rules, t = now(); let m = '';
-  if (S.status === 'lobby') m = S.host ? 'Partage le code ' + S.code + ', puis lance la partie' : "En attente du lancement par l’hôte";
-  else if (S.status === 'ended') m = 'Partie terminée';
-  else {
-    const t0 = S.startedAt + r.headStart * 60000, end = S.startedAt + r.durationMin * 60000;
-    if (t > end) m = 'Temps écoulé';
-    else if (t < t0) m = (S.role === 'fugitif' ? 'Cache-toi, départ des chasseurs dans ' : 'Les fugitifs se cachent, départ dans ') + fmt(t0 - t);
-    else {
-      const i = Math.floor((t - t0) / (r.revealSec * 1000)); m = 'Fin de partie dans ' + fmt(end - t);
-      if (S.role === 'chasseur') { m = 'Prochaine position dans ' + fmt(t0 + (i+1) * r.revealSec * 1000 - t) + '. ' + m; if (i !== revIdx) { revIdx = i; reveal(i); } }
+  <main>
+    <h1>Man<br>Hunt <span class="pill">IRL</span></h1>
+    <p class="tag">Poursuite grandeur nature. Crée une partie, invite tes amis, traque ou disparais.</p>
+    <input id="name" placeholder="Ton pseudo" autocomplete="nickname" maxlength="30" aria-label="Ton pseudo">
+    <select id="role" aria-label="Ton rôle"><option value="fugitif">Je suis fugitif</option><option value="chasseur">Je suis chasseur</option></select>
+    <button id="create">Créer une partie</button>
+    <div class="row"><input id="code" placeholder="Code de la partie" maxlength="4" autocapitalize="characters" aria-label="Code de la partie"><button id="join" class="alt">Rejoindre</button></div>
+    <p id="message" role="status" aria-live="polite"></p>
+  </main>
+  <script>
+    const $=selector=>document.querySelector(selector);
+    $('#name').value=localStorage.getItem('mhName')||'';
+    $('#role').value=localStorage.getItem('mhRole')||'fugitif';
+    function savePlayer(){
+      const name=$('#name').value.trim();
+      if(!name){$('#message').textContent='Entre un pseudo pour continuer.';$('#name').focus();return false;}
+      localStorage.setItem('mhName',name);
+      localStorage.setItem('mhRole',$('#role').value);
+      $('#message').textContent='';
+      return true;
     }
-  }
-  $('#status').textContent = m;
-}
-function ui(){
-  $('#info').textContent = 'Partie ' + S.code + ' (' + S.role + ')';
-  $('#btnSet').hidden = $('#btnGo').hidden = !S.host;
-  $('#btnGo').textContent = S.status === 'running' ? 'Terminer' : 'Lancer';
-  $('#btnCaught').hidden = S.role !== 'fugitif';
-}
-$('#btnGo').onclick = () => db.ref('games/' + S.code).update(S.status === 'running' ? {status:'ended'} : {status:'running', startedAt:firebase.database.ServerValue.TIMESTAMP});
-$('#btnCaught').onclick = () => { if (confirm('Confirmer que tu as été capturé ?')) db.ref(`games/${S.code}/players/${S.id}/caught`).set(true); };
-$('#btnSos').onclick = () => { if (confirm('Envoyer une alerte SOS à tous les joueurs ?')) db.ref(`games/${S.code}/sos`).set({name:S.name, t:now()}); };
-$('#btnSet').onclick = () => { for (const k of ['zoneR','headStart','revealSec','fuzzM','durationMin']) $('#' + k).value = S.rules[k]; $('#set').showModal(); };
-$('#btnClose').onclick = () => $('#set').close();
-$('#btnSave').onclick = () => { const p = {}; for (const k of ['zoneR','headStart','revealSec','fuzzM','durationMin']) p[k] = +$('#' + k).value; setRules(p); $('#set').close(); toast('Réglages enregistrés'); };
-$('#btnPick').onclick = () => { S.pick = true; $('#set').close(); toast('Touche la carte pour placer le centre'); };
-$('#btnHere').onclick = async () => { const p = S.pos || await getPos().catch(() => null); if (p) { setRules(p); toast('Centre déplacé sur ta position'); } };
-
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
-</script>
+    $('#create').addEventListener('click',()=>{if(savePlayer())location.href='./creer.html';});
+    $('#join').addEventListener('click',()=>{
+      if(!savePlayer())return;
+      const code=$('#code').value.trim().toUpperCase();
+      if(!code){$('#message').textContent='Entre le code de la partie.';$('#code').focus();return;}
+      location.href='./jeu.html?code='+encodeURIComponent(code);
+    });
+    $('#code').addEventListener('keydown',event=>{if(event.key==='Enter')$('#join').click();});
+    if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(error=>console.warn('Service worker non enregistré:',error));
+  </script>
 </body>
 </html>
