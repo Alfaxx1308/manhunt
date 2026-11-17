@@ -107,12 +107,18 @@ dialog label{display:block;margin:12px 0 6px;color:var(--mut);font-size:.9rem}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
 // 1. Colle ici la configuration de ton projet Firebase
-const CFG = {
-  apiKey: "A_REMPLIR",
-  authDomain: "A_REMPLIR",
-  databaseURL: "A_REMPLIR",
-  projectId: "A_REMPLIR",
-  appId: "A_REMPLIR"
+const firebaseConfig = {
+  apiKey: "AIzaSyBs1dxrsJKjYZQwk9s-6A5JUMAgUz2Umc8",
+  authDomain: "manhunt-42850.firebaseapp.com",
+  projectId: "manhunt-42850",
+  storageBucket: "manhunt-42850.firebasestorage.app",
+  messagingSenderId: "721791132248",
+  appId: "1:721791132248:web:a7dd7fbaf9deadddf9e02d",
+  measurementId: "G-VHSC50F5ZM"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 };
 firebase.initializeApp(CFG);
 const db = firebase.database();
