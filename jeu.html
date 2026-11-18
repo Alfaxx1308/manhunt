@@ -4,22 +4,138 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Man Hunt IRL - Partie</title>
-<link rel="icon" type="image/svg+xml" href="./icon.svg">
-<link rel="shortcut icon" href="./icon.svg">
-<link rel="manifest" href="./manifest.json">
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0b0b0c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="apple-touch-icon" href="./icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<section id="game" class="screen on"><div id="top"><div><b id="info"></b></div><div id="status"></div><div id="alert"></div></div><div id="map"></div><div id="bar"><button id="btnSet" hidden>Réglages</button><button id="btnGo" hidden>Lancer</button><button id="btnCaught" hidden class="alt">Capturé</button><button id="btnSos">SOS</button></div></section>
-<dialog id="set"><h2>Réglages de la partie</h2><label for="zoneR">Rayon de la zone (mètres)</label><input id="zoneR" type="number" min="100"><label for="headStart">Avance des fugitifs (minutes)</label><input id="headStart" type="number" min="0"><label for="revealSec">Intervalle de révélation (secondes)</label><input id="revealSec" type="number" min="10"><label for="fuzzM">Rayon des cercles flous (mètres)</label><input id="fuzzM" type="number" min="20"><label for="durationMin">Durée de la partie (minutes)</label><input id="durationMin" type="number" min="5"><div class="row" style="margin-top:12px"><button id="btnPick" class="alt">Choisir le centre sur la carte</button><button id="btnHere" class="alt">Centre sur ma position</button></div><div class="row" style="margin-top:8px"><button id="btnSave">Enregistrer</button><button id="btnClose" class="alt">Fermer</button></div></dialog><div id="toast"></div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script><script src="./common.js"></script>
+<section id="game" class="screen on">
+  <div id="top"><div><b id="info"></b></div><div id="status"></div><div id="alert"></div></div>
+  <div id="map"></div>
+  <div id="bar">
+    <button id="btnSet" hidden>Réglages</button>
+    <button id="btnGo" hidden>Lancer</button>
+    <button id="btnCaught" hidden class="alt">Capturé</button>
+    <button id="btnSos">SOS</button>
+  </div>
+</section>
+
+<dialog id="set">
+  <h2 style="margin:0">Réglages de la partie</h2>
+  <label for="zoneR">Rayon de la zone (mètres)</label><input id="zoneR" type="number" min="100">
+  <label for="headStart">Avance des fugitifs (minutes)</label><input id="headStart" type="number" min="0">
+  <label for="revealSec">Intervalle de révélation (secondes)</label><input id="revealSec" type="number" min="10">
+  <label for="fuzzM">Rayon des cercles flous (mètres)</label><input id="fuzzM" type="number" min="20">
+  <label for="durationMin">Durée de la partie (minutes)</label><input id="durationMin" type="number" min="5">
+  <div class="row" style="margin-top:12px"><button id="btnPick" class="alt">Choisir le centre sur la carte</button><button id="btnHere" class="alt">Centre sur ma position</button></div>
+  <div class="row" style="margin-top:8px"><button id="btnSave">Enregistrer</button><button id="btnClose" class="alt">Fermer</button></div>
+</dialog>
+<div id="toast"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
 <script>
-let map,zone,me,revIdx=-1;const circles=L.layerGroup(),hm={};S.code=(new URLSearchParams(location.search).get('code')||'').toUpperCase();function initMap(){if(map)return;map=L.map('map',{zoomControl:false}).setView([S.rules.lat,S.rules.lng],15);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);zone=L.circle([S.rules.lat,S.rules.lng],{radius:S.rules.zoneR,color:'#ff6a00',fill:false,weight:3,dashArray:'10 8'}).addTo(map);circles.addTo(map)}const setRules=p=>db.ref('games/'+S.code+'/rules').update(p);async function start(){if(!S.code||!S.name){location.href='index.html';return}const snap=await db.ref('games/'+S.code).get();if(!snap.exists()){alert('Partie introuvable');location.href='index.html';return}S.host=snap.val().host===S.id;S.role=localStorage.mhRole||'fugitif';S.joined=now();S.rules={...DEF,...snap.val().rules};await db.ref(`games/${S.code}/players/${S.id}`).update({name:S.name,role:S.role,caught:false});initMap();ui()}function ui(){$('#info').textContent='Partie '+S.code+' ('+S.role+')';$('#btnSet').hidden=$('#btnGo').hidden=!S.host;$('#btnGo').textContent=S.status==='running'?'Terminer':'Lancer';$('#btnCaught').hidden=S.role!=='fugitif'}start();
+let map, zone, me, revIdx = -1; const circles = L.layerGroup(), hm = {};
+S.code = (new URLSearchParams(location.search).get('code') || '').toUpperCase();
+function initMap(){
+  if (map) return;
+  map = L.map('map', {zoomControl:false}).setView([S.rules.lat, S.rules.lng], 15);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {maxZoom:19, subdomains:'abcd', attribution:'© OpenStreetMap © CARTO'}).addTo(map);
+  zone = L.circle([S.rules.lat, S.rules.lng], {radius:S.rules.zoneR, color:'#ff6a00', fill:false, weight:3, dashArray:'10 8'}).addTo(map);
+  circles.addTo(map);
+  map.on('click', e => { if (S.pick) { S.pick = false; setRules({lat:e.latlng.lat, lng:e.latlng.lng}); toast('Centre de la zone déplacé'); } });
+}
+const setRules = p => db.ref('games/' + S.code + '/rules').update(p);
+
+function listen(){
+  const g = db.ref('games/' + S.code);
+  g.child('rules').on('value', s => { S.rules = {...DEF, ...s.val()}; const r = S.rules;
+    zone.setLatLng([r.lat, r.lng]).setRadius(r.zoneR); if (!S.centered) { map.setView([r.lat, r.lng], 15); S.centered = 1; } });
+  g.child('status').on('value', s => { S.status = s.val() || 'lobby'; ui(); });
+  g.child('startedAt').on('value', s => { S.startedAt = s.val() || 0; revIdx = -1; S.drawn = -1; circles.clearLayers(); });
+  g.child('sos').on('value', s => { const v = s.val(); if (v && v.t > S.joined) alertBar('SOS de ' + v.name, true); });
+  // Les fugitifs n'écoutent jamais les positions des autres joueurs
+  if (S.role === 'chasseur') g.child('players').on('value', s => { S.players = s.val() || {}; drawHunters(); if (revIdx >= 0 && S.drawn !== revIdx) reveal(revIdx); });
+  setInterval(tick, 1000);
+}
+function watch(){
+  navigator.geolocation.watchPosition(p => {
+    const q = {lat:p.coords.latitude, lng:p.coords.longitude}; S.pos = q;
+    if (S.role === 'chasseur') me = me ? me.setLatLng(q) : L.circleMarker(q, {radius:9, color:'#ff6a00', fillColor:'#fff', fillOpacity:1, weight:4}).addTo(map);
+    const t = now(); if (t - (S.last || 0) > 4000) { S.last = t; db.ref(`games/${S.code}/players/${S.id}/pos`).set({...q, t}); }
+    const out = dist(q, S.rules) > S.rules.zoneR;
+    if (out !== S.out) { S.out = out; if (out) { alertBar('Tu es hors de la zone de jeu', true); notify('Hors zone', 'Reviens dans la zone de jeu'); } else $('#alert').style.display = 'none'; }
+  }, e => toast('GPS : ' + e.message), {enableHighAccuracy:true, maximumAge:2000});
+}
+async function wake(){ try { await navigator.wakeLock.request('screen'); } catch (e) {} }
+document.addEventListener('visibilitychange', () => { if (!document.hidden && S.code) wake(); });
+function alertBar(t, vib){ const a = $('#alert'); a.textContent = t; a.style.display = 'block'; a.onclick = () => a.style.display = 'none'; if (vib) notify('Man Hunt', t); }
+
+function drawHunters(){
+  for (const [id, p] of Object.entries(S.players)) {
+    if (id === S.id || p.role !== 'chasseur' || !p.pos) continue;
+    (hm[id] = hm[id] || L.circleMarker([0,0], {radius:6, color:'#0b0b0c', fillColor:'#fff', fillOpacity:1, weight:2}).bindTooltip(p.name).addTo(map)).setLatLng([p.pos.lat, p.pos.lng]);
+  }
+}
+// Les chasseurs voient chaque fugitif dans un cercle dont le centre est décalé (même décalage pour tous les chasseurs)
+function reveal(i){
+  circles.clearLayers(); let n = 0; const f = S.rules.fuzzM;
+  for (const [id, p] of Object.entries(S.players)) {
+    if (p.role !== 'fugitif' || p.caught || !p.pos) continue; n++;
+    const R = rnd(id + i), a = R() * 6.283, d = R() * f * .7;
+    const la = p.pos.lat + d * Math.cos(a) / 111320, ln = p.pos.lng + d * Math.sin(a) / (111320 * Math.cos(p.pos.lat * Math.PI / 180));
+    L.circle([la, ln], {radius:f, color:'#ff6a00', weight:2, fillColor:'#ff6a00', fillOpacity:.25}).addTo(circles);
+  }
+  if (n) { S.drawn = i; notify('Radar', 'Nouvelles positions des fugitifs'); }
+}
+function tick(){
+  const r = S.rules, t = now(); let m = '';
+  if (S.status === 'lobby') m = S.host ? 'Partage le code ' + S.code + ', puis lance la partie' : "En attente du lancement par l’hôte";
+  else if (S.status === 'ended') m = 'Partie terminée';
+  else {
+    const t0 = S.startedAt + r.headStart * 60000, end = S.startedAt + r.durationMin * 60000;
+    if (t > end) m = 'Temps écoulé';
+    else if (t < t0) m = (S.role === 'fugitif' ? 'Cache-toi, départ des chasseurs dans ' : 'Les fugitifs se cachent, départ dans ') + fmt(t0 - t);
+    else {
+      const i = Math.floor((t - t0) / (r.revealSec * 1000)); m = 'Fin de partie dans ' + fmt(end - t);
+      if (S.role === 'chasseur') { m = 'Prochaine position dans ' + fmt(t0 + (i+1) * r.revealSec * 1000 - t) + '. ' + m; if (i !== revIdx) { revIdx = i; reveal(i); } }
+    }
+  }
+  $('#status').textContent = m;
+}
+function ui(){
+  $('#info').textContent = 'Partie ' + S.code + ' (' + S.role + ')';
+  $('#btnSet').hidden = $('#btnGo').hidden = !S.host;
+  $('#btnGo').textContent = S.status === 'running' ? 'Terminer' : 'Lancer';
+  $('#btnCaught').hidden = S.role !== 'fugitif';
+}
+$('#btnGo').onclick = () => db.ref('games/' + S.code).update(S.status === 'running' ? {status:'ended'} : {status:'running', startedAt:firebase.database.ServerValue.TIMESTAMP});
+$('#btnCaught').onclick = () => { if (confirm('Confirmer que tu as été capturé ?')) db.ref(`games/${S.code}/players/${S.id}/caught`).set(true); };
+$('#btnSos').onclick = () => { if (confirm('Envoyer une alerte SOS à tous les joueurs ?')) db.ref(`games/${S.code}/sos`).set({name:S.name, t:now()}); };
+$('#btnSet').onclick = () => { for (const k of ['zoneR','headStart','revealSec','fuzzM','durationMin']) $('#' + k).value = S.rules[k]; $('#set').showModal(); };
+$('#btnClose').onclick = () => $('#set').close();
+$('#btnSave').onclick = () => { const p = {}; for (const k of ['zoneR','headStart','revealSec','fuzzM','durationMin']) p[k] = +$('#' + k).value; setRules(p); $('#set').close(); toast('Réglages enregistrés'); };
+$('#btnPick').onclick = () => { S.pick = true; $('#set').close(); toast('Touche la carte pour placer le centre'); };
+$('#btnHere').onclick = async () => { const p = S.pos || await getPos().catch(() => null); if (p) { setRules(p); toast('Centre déplacé sur ta position'); } };
+
+
+async function start(){
+  if (!needDb()) return;
+  if (!S.code || !S.name) { location.href = 'index.html'; return; }
+  const snap = await db.ref('games/' + S.code).get();
+  if (!snap.exists()) { alert('Partie introuvable'); location.href = 'index.html'; return; }
+  S.host = snap.val().host === S.id; S.role = localStorage.mhRole || 'fugitif'; S.joined = now();
+  S.rules = {...DEF, ...snap.val().rules};
+  await db.ref(`games/${S.code}/players/${S.id}`).update({name:S.name, role:S.role, caught:false});
+  initMap(); listen(); watch(); wake(); ui();
+}
+start();
 </script>
 </body>
 </html>
