@@ -40,7 +40,7 @@ if (!S.name) location.href = 'index.html';
 const KEYS = ['zoneR','headStart','revealSec','fuzzM','durationMin'];
 let cc = {lat:DEF.lat, lng:DEF.lng};
 const cm = L.map('cmap', {zoomControl:false}).setView([cc.lat, cc.lng], 14);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {maxZoom:19, subdomains:'abcd', attribution:'© OpenStreetMap © CARTO'}).addTo(cm);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(cm);
 const cz = L.circle([cc.lat, cc.lng], {radius:DEF.zoneR, color:'#ff6a00', fill:false, weight:3, dashArray:'10 8'}).addTo(cm);
 const setC = (p, pan) => { cc = {lat:p.lat, lng:p.lng}; cz.setLatLng([cc.lat, cc.lng]); if (pan) cm.setView([cc.lat, cc.lng], 14); };
 for (const k of KEYS) $('#c_' + k).value = DEF[k];
