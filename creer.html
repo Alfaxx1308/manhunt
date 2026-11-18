@@ -4,21 +4,59 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Nouvelle partie</title>
-<link rel="icon" type="image/svg+xml" href="./icon.svg">
-<link rel="shortcut icon" href="./icon.svg">
-<link rel="manifest" href="./manifest.json">
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0b0b0c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="apple-touch-icon" href="./icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<section id="create" class="screen on"><div id="cmap"></div><div id="cform"><h2>Nouvelle partie</h2><p class="hint">Touche la carte pour placer le centre de la zone de jeu. Tu pourras tout modifier ensuite.</p><button id="btnCHere" class="alt" style="margin-bottom:10px">Placer la zone sur ma position</button><div class="grid"><div><label for="c_zoneR">Rayon de la zone (m)</label><input id="c_zoneR" type="number" min="100"></div><div><label for="c_headStart">Avance des fugitifs (min)</label><input id="c_headStart" type="number" min="0"></div><div><label for="c_revealSec">Révélation toutes les (s)</label><input id="c_revealSec" type="number" min="10"></div><div><label for="c_fuzzM">Rayon des cercles flous (m)</label><input id="c_fuzzM" type="number" min="20"></div><div><label for="c_durationMin">Durée de la partie (min)</label><input id="c_durationMin" type="number" min="5"></div></div><div class="row" style="margin-top:14px"><button id="btnBack" class="alt">Retour</button><button id="btnOk">Créer la partie</button></div></div></section><div id="toast"></div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script><script src="./common.js"></script>
+<section id="create" class="screen on">
+  <div id="cmap"></div>
+  <div id="cform">
+    <h2>Nouvelle partie</h2>
+    <p class="hint">Touche la carte pour placer le centre de la zone de jeu. Tu pourras tout modifier ensuite.</p>
+    <button id="btnCHere" class="alt" style="margin-bottom:10px">Placer la zone sur ma position</button>
+    <div class="grid">
+      <div><label for="c_zoneR">Rayon de la zone (m)</label><input id="c_zoneR" type="number" min="100"></div>
+      <div><label for="c_headStart">Avance des fugitifs (min)</label><input id="c_headStart" type="number" min="0"></div>
+      <div><label for="c_revealSec">Révélation toutes les (s)</label><input id="c_revealSec" type="number" min="10"></div>
+      <div><label for="c_fuzzM">Rayon des cercles flous (m)</label><input id="c_fuzzM" type="number" min="20"></div>
+      <div><label for="c_durationMin">Durée de la partie (min)</label><input id="c_durationMin" type="number" min="5"></div>
+    </div>
+    <div class="row" style="margin-top:14px"><button id="btnBack" class="alt">Retour</button><button id="btnOk">Créer la partie</button></div>
+  </div>
+</section>
+<div id="toast"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
 <script>
-if(!S.name)location.href='index.html';const KEYS=['zoneR','headStart','revealSec','fuzzM','durationMin'];let cc={lat:DEF.lat,lng:DEF.lng};const cm=L.map('cmap',{zoomControl:false}).setView([cc.lat,cc.lng],14);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(cm);const cz=L.circle([cc.lat,cc.lng],{radius:DEF.zoneR,color:'#ff6a00',fill:false,weight:3,dashArray:'10 8'}).addTo(cm);const setC=(p,pan)=>{cc={lat:p.lat,lng:p.lng};cz.setLatLng([cc.lat,cc.lng]);if(pan)cm.setView([cc.lat,cc.lng],14)};for(const k of KEYS)$('#c_'+k).value=DEF[k];cm.on('click',e=>setC(e.latlng));$('#c_zoneR').oninput=e=>cz.setRadius(+e.target.value||0);getPos().then(p=>setC(p,true)).catch(()=>{});$('#btnCHere').onclick=()=>getPos().then(p=>setC(p,true)).catch(()=>toast('Position introuvable'));$('#btnBack').onclick=()=>location.href='index.html';$('#btnOk').onclick=async()=>{$('#btnOk').disabled=true;const r={...DEF,lat:cc.lat,lng:cc.lng};for(const k of KEYS)r[k]=+$('#c_'+k).value||DEF[k];const code=Array.from({length:4},()=> 'ABCDEFGHJKMNPQRSTUVWXYZ'[Math.random()*23|0]).join('');try{await db.ref('games/'+code).set({host:S.id,status:'lobby',rules:r});location.href='jeu.html?code='+code}catch(e){toast('Erreur : '+e.message);$('#btnOk').disabled=false}};
+if (!S.name) location.href = 'index.html';
+const KEYS = ['zoneR','headStart','revealSec','fuzzM','durationMin'];
+let cc = {lat:DEF.lat, lng:DEF.lng};
+const cm = L.map('cmap', {zoomControl:false}).setView([cc.lat, cc.lng], 14);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {maxZoom:19, subdomains:'abcd', attribution:'© OpenStreetMap © CARTO'}).addTo(cm);
+const cz = L.circle([cc.lat, cc.lng], {radius:DEF.zoneR, color:'#ff6a00', fill:false, weight:3, dashArray:'10 8'}).addTo(cm);
+const setC = (p, pan) => { cc = {lat:p.lat, lng:p.lng}; cz.setLatLng([cc.lat, cc.lng]); if (pan) cm.setView([cc.lat, cc.lng], 14); };
+for (const k of KEYS) $('#c_' + k).value = DEF[k];
+cm.on('click', e => setC(e.latlng));
+$('#c_zoneR').oninput = e => cz.setRadius(+e.target.value || 0);
+getPos().then(p => setC(p, true)).catch(() => {});
+$('#btnCHere').onclick = () => getPos().then(p => setC(p, true)).catch(() => toast('Position introuvable'));
+$('#btnBack').onclick = () => { location.href = 'index.html'; };
+$('#btnOk').onclick = async () => {
+  if (!needDb()) return;
+  $('#btnOk').disabled = true;
+  const r = {...DEF, lat:cc.lat, lng:cc.lng}; for (const k of KEYS) r[k] = +$('#c_' + k).value || DEF[k];
+  const code = Array.from({length:4}, () => 'ABCDEFGHJKMNPQRSTUVWXYZ'[Math.random()*23|0]).join('');
+  try { await db.ref('games/' + code).set({host:S.id, status:'lobby', rules:r}); location.href = 'jeu.html?code=' + code; }
+  catch (e) { toast('Erreur : ' + e.message); $('#btnOk').disabled = false; }
+};
 </script>
 </body>
 </html>
