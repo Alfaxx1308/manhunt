@@ -1,67 +1,31 @@
-// Configuration Firebase partagée par creer.html et jeu.html.
-const firebaseConfig = {
-  apiKey: "AIzaSyBs1dxrsJKjYZQwk9s-6A5JUMAgUz2Umc8",
-  authDomain: "manhunt-42850.firebaseapp.com",
-  projectId: "manhunt-42850",
-  storageBucket: "manhunt-42850.firebasestorage.app",
-  messagingSenderId: "721791132248",
-  appId: "1:721791132248:web:a7dd7fbaf9deadddf9e02d",
-  measurementId: "G-VHSC50F5ZM"
-};
-
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-let off = 0;
-db.ref('.info/serverTimeOffset').on('value', snapshot => off = snapshot.val() || 0);
+let db = null;
+try { firebase.initializeApp(CFG); db = firebase.database(); } catch (e) { console.error(e); }
+let off = 0; if (db) db.ref('.info/serverTimeOffset').on('value', s => off = s.val() || 0);
 const now = () => Date.now() + off;
-const $ = selector => document.querySelector(selector);
+const $ = s => document.querySelector(s);
 
+// Réglages par défaut, tous modifiables par l'hôte pendant la partie
 const DEF = {lat:48.8566, lng:2.3522, zoneR:1000, headStart:5, revealSec:150, fuzzM:150, durationMin:60};
-const S = {
-  id: localStorage.mhId || (localStorage.mhId = Math.random().toString(36).slice(2,10)),
-  name: localStorage.mhName || '',
-  code: null,
-  role: localStorage.mhRole || null,
-  host: false,
-  rules: {...DEF},
-  status: 'lobby',
-  startedAt: 0,
-  players: {},
-  pos: null,
-  pick: false,
-  out: false,
-  drawn: -1
-};
+const S = {id: localStorage.mhId || (localStorage.mhId = Math.random().toString(36).slice(2,10)),
+  name:'', code:null, role:null, host:false, rules:{...DEF}, status:'lobby', startedAt:0,
+  players:{}, pos:null, pick:false, out:false, drawn:-1};
 
-const toast = message => {
-  const element = $('#toast');
-  if (!element) return;
-  element.textContent = message;
-  element.style.display = 'block';
-  clearTimeout(toast.timer);
-  toast.timer = setTimeout(() => element.style.display = 'none', 2500);
-};
-const fmt = ms => {
-  const seconds = Math.max(0, Math.ceil(ms / 1000));
-  return Math.floor(seconds / 60) + ' min ' + String(seconds % 60).padStart(2, '0') + ' s';
-};
-const dist = (a,b) => {
-  const R=6371000,t=Math.PI/180,x=(b.lat-a.lat)*t,y=(b.lng-a.lng)*t;
-  const h=Math.sin(x/2)**2+Math.cos(a.lat*t)*Math.cos(b.lat*t)*Math.sin(y/2)**2;
-  return 2*R*Math.asin(Math.sqrt(h));
-};
-function rnd(str) {
-  let h=1779033703^str.length;
-  for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19;}
-  return()=>{h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);return((h^=h>>>16)>>>0)/4294967296;};
-}
-const getPos = () => new Promise((resolve,reject) => {
-  if (!navigator.geolocation) return reject(new Error('La géolocalisation n’est pas disponible.'));
-  navigator.geolocation.getCurrentPosition(position=>resolve({lat:position.coords.latitude,lng:position.coords.longitude}),reject,{enableHighAccuracy:true,timeout:8000});
-});
-function notify(title,body) {
-  if(window.Notification&&Notification.permission==='granted'&&navigator.serviceWorker)
-    navigator.serviceWorker.ready.then(registration=>registration.showNotification(title,{body,icon:'icon.svg',vibrate:[200,100,200]})).catch(()=>{});
-  if(navigator.vibrate)navigator.vibrate([200,100,200]);
-}
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(error=>console.warn('Service worker non enregistré:',error));
+const toast = (t, ms = 2500) => { const e = $('#toast'); e.textContent = t; e.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(() => e.style.display = 'none', ms); };
+const fmt = ms => { const s = Math.max(0, Math.ceil(ms/1000)); return Math.floor(s/60) + ' min ' + String(s%60).padStart(2,'0') + ' s'; };
+const dist = (a,b) => { const R=6371000,t=Math.PI/180,x=(b.lat-a.lat)*t,y=(b.lng-a.lng)*t,h=Math.sin(x/2)**2+Math.cos(a.lat*t)*Math.cos(b.lat*t)*Math.sin(y/2)**2; return 2*R*Math.asin(Math.sqrt(h)); };
+function rnd(str){ let h = 1779033703 ^ str.length; for (let i=0;i<str.length;i++){ h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h<<13 | h>>>19; }
+  return () => { h = Math.imul(h ^ h>>>16, 2246822507); h = Math.imul(h ^ h>>>13, 3266489909); return ((h ^= h>>>16) >>> 0) / 4294967296; }; }
+const getPos = () => new Promise((ok, ko) => navigator.geolocation.getCurrentPosition(p => ok({lat:p.coords.latitude, lng:p.coords.longitude}), ko, {enableHighAccuracy:true, timeout:8000}));
+function notify(t, b){ if (window.Notification && Notification.permission === 'granted' && navigator.serviceWorker)
+  navigator.serviceWorker.ready.then(r => r.showNotification(t, {body:b, icon:'icon.svg', vibrate:[200,100,200]})); if (navigator.vibrate) navigator.vibrate([200,100,200]); }
+
+S.name = localStorage.mhName || '';
+S.role = localStorage.mhRole || null;
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+
+// Messages d'erreur visibles (utile pour comprendre ce qui ne marche pas)
+const needDb = () => { if (db) return true; toast('Firebase non configuré : remplis config.js', 6000); return false; };
+if (!db || CFG.apiKey === 'A_REMPLIR') setTimeout(() => toast('Configuration Firebase manquante : remplis config.js', 8000), 300);
+window.addEventListener('error', e => toast('Erreur : ' + e.message, 6000));
+window.addEventListener('unhandledrejection', e => toast('Erreur : ' + ((e.reason && e.reason.message) || e.reason), 6000));
