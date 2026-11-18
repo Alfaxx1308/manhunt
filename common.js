@@ -1,5 +1,14 @@
 let db = null;
-try { firebase.initializeApp(CFG); db = firebase.database(); } catch (e) { console.error(e); }
+let firebaseInitError = null;
+try {
+  if (!window.firebase || !window.firebase.database) throw new Error('Le SDK Firebase n’a pas été chargé. Vérifie ta connexion et les scripts Firebase.');
+  if (!window.CFG || !CFG.apiKey || CFG.apiKey === 'A_REMPLIR' || !CFG.databaseURL) throw new Error('La configuration de config.js est incomplète.');
+  firebase.initializeApp(CFG);
+  db = firebase.database();
+} catch (e) {
+  firebaseInitError = e;
+  console.error('Initialisation Firebase impossible :', e);
+}
 let off = 0; if (db) db.ref('.info/serverTimeOffset').on('value', s => off = s.val() || 0);
 const now = () => Date.now() + off;
 const $ = s => document.querySelector(s);
@@ -10,7 +19,14 @@ const S = {id: localStorage.mhId || (localStorage.mhId = Math.random().toString(
   name:'', code:null, role:null, host:false, rules:{...DEF}, status:'lobby', startedAt:0,
   players:{}, pos:null, pick:false, out:false, drawn:-1};
 
-const toast = (t, ms = 2500) => { const e = $('#toast'); e.textContent = t; e.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(() => e.style.display = 'none', ms); };
+const toast = (t, ms = 2500) => { const e = $('#toast'); e.textContent = t; e.style.display = 'block'; e.onclick = null; e.style.cursor = ''; clearTimeout(toast.t); toast.t = setTimeout(() => e.style.display = 'none', ms); };
+const showFirebaseWarning = () => {
+  const detail = firebaseInitError && firebaseInitError.message ? firebaseInitError.message : 'La base de données Firebase est indisponible.';
+  toast('Firebase indisponible — touche ici pour le diagnostic', 8000);
+  const e = $('#toast');
+  e.style.cursor = 'pointer';
+  e.onclick = () => alert('Connexion Firebase impossible. ' + detail + '\n\nVérifie config.js, que Firebase Realtime Database est activée et que les règles autorisent l’accès. Puis recharge le site.');
+};
 const fmt = ms => { const s = Math.max(0, Math.ceil(ms/1000)); return Math.floor(s/60) + ' min ' + String(s%60).padStart(2,'0') + ' s'; };
 const dist = (a,b) => { const R=6371000,t=Math.PI/180,x=(b.lat-a.lat)*t,y=(b.lng-a.lng)*t,h=Math.sin(x/2)**2+Math.cos(a.lat*t)*Math.cos(b.lat*t)*Math.sin(y/2)**2; return 2*R*Math.asin(Math.sqrt(h)); };
 function rnd(str){ let h = 1779033703 ^ str.length; for (let i=0;i<str.length;i++){ h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h<<13 | h>>>19; }
@@ -24,8 +40,8 @@ S.role = localStorage.mhRole || null;
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 
-// Messages d'erreur visibles (utile pour comprendre ce qui ne marche pas)
-const needDb = () => { if (db) return true; toast('Firebase non configuré : remplis config.js', 6000); return false; };
-if (!db || CFG.apiKey === 'A_REMPLIR') setTimeout(() => toast('Configuration Firebase manquante : remplis config.js', 8000), 300);
+// Le message est actionnable : toucher l’avertissement affiche la cause réelle.
+const needDb = () => { if (db) return true; showFirebaseWarning(); return false; };
+if (!db) setTimeout(showFirebaseWarning, 300);
 window.addEventListener('error', e => toast('Erreur : ' + e.message, 6000));
 window.addEventListener('unhandledrejection', e => toast('Erreur : ' + ((e.reason && e.reason.message) || e.reason), 6000));
