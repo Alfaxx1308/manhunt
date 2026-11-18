@@ -1,5 +1,6 @@
 // Configuration de l'application Firebase (console Firebase > Paramètres du projet > Vos applications)
-const CFG = {
+// Exposé sur window pour être accessible depuis tous les scripts de l'application.
+window.CFG = {
   apiKey: "AIzaSyBs1dxrsJKjYZQwk9s-6A5JUMAgUz2Umc8",
   authDomain: "manhunt-42850.firebaseapp.com",
   databaseURL: "https://manhunt-42850-default-rtdb.europe-west1.firebasedatabase.app",
