@@ -46,7 +46,7 @@ S.code = (new URLSearchParams(location.search).get('code') || '').toUpperCase();
 function initMap(){
   if (map) return;
   map = L.map('map', {zoomControl:false}).setView([S.rules.lat, S.rules.lng], 15);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {maxZoom:19, subdomains:'abcd', attribution:'© OpenStreetMap © CARTO'}).addTo(map);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);
   zone = L.circle([S.rules.lat, S.rules.lng], {radius:S.rules.zoneR, color:'#ff6a00', fill:false, weight:3, dashArray:'10 8'}).addTo(map);
   circles.addTo(map);
   map.on('click', e => { if (S.pick) { S.pick = false; setRules({lat:e.latlng.lat, lng:e.latlng.lng}); toast('Centre de la zone déplacé'); } });
