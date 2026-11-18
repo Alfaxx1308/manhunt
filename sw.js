@@ -1,5 +1,5 @@
-const CACHE_NAME = 'manhunt-v4';
-const FILES = ['./', './index.html', './creer.html', './jeu.html', './style.css', './common.js', './manifest.json', './icon.svg'];
+const CACHE_NAME = 'manhunt-v5';
+const FILES = ['./', './index.html', './creer.html', './jeu.html', './style.css', './common.js', './config.js', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(FILES)));
